@@ -47,7 +47,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements Runnable {
     private int mImageIndex = 0;
-    private String[] mTestImages = {"test1.png", "test2.jpg", "test3.png"};
+    private String[] mTestImages = {"test1.jpg", "test2.jpg", "test3.jpg"};
 
     private ImageView mImageView;
     private ResultView mResultView;
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         });
 
         try {
-            mModule = LiteModuleLoader.load(MainActivity.assetFilePath(getApplicationContext(), "yolov5s.torchscript.ptl"));
+            mModule = LiteModuleLoader.load(MainActivity.assetFilePath(getApplicationContext(), "mobile_multi_model_89_22.ptl"));
             BufferedReader br = new BufferedReader(new InputStreamReader(getAssets().open("classes.txt")));
             String line;
             List<String> classes = new ArrayList<>();
@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
     public void run() {
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(mBitmap, PrePostProcessor.mInputWidth, PrePostProcessor.mInputHeight, true);
         final Tensor inputTensor = TensorImageUtils.bitmapToFloat32Tensor(resizedBitmap, PrePostProcessor.NO_MEAN_RGB, PrePostProcessor.NO_STD_RGB);
+        System.out.print(inputTensor);
         IValue[] outputTuple = mModule.forward(IValue.from(inputTensor)).toTuple();
         final Tensor outputTensor = outputTuple[0].toTensor();
         final float[] outputs = outputTensor.getDataAsFloatArray();
