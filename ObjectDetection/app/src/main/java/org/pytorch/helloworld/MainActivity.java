@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -35,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     try {
       // creating bitmap from packaged into app android asset 'image.jpg',
       // app/src/main/assets/image.jpg
-      bitmap = BitmapFactory.decodeStream(getAssets().open("image.jpg"));
+      bitmap = BitmapFactory.decodeStream(getAssets().open("view1_frontal.jpg"));
       // loading serialized torchscript module from packaged into app android asset model.pt,
       // app/src/model/assets/model.pt
       module = LiteModuleLoader.load(assetFilePath(this, "mobile_model.pt"));
@@ -58,8 +57,36 @@ public class MainActivity extends AppCompatActivity {
     // getting tensor content as java array of floats
     final float[] scores = outputTensor.getDataAsFloatArray();
 
+    final float [] sigmoid= ImageNetClasses.sigmoid(scores);
+
+    final float [] res_bin =ImageNetClasses.binarizacion(sigmoid, .22);
+
+
+
+    String palabra="";
+    String espacio = " ";
+    int sum=0;
+    for(int i = 0; i < res_bin.length; i++) {
+      sum += res_bin[i];
+      if (res_bin[i] == 1) {
+        String clase = ImageNetClasses.IMAGENET_CLASSES[i];
+        palabra=palabra.concat(clase);
+        palabra=palabra.concat(espacio);
+      }
+    }
+
+    if(sum<=0){
+      palabra = "Ninguna Enferemedad Detectada";
+    }
+
+
+
     // searching for the index with maximum score
     float maxScore = -Float.MAX_VALUE;
+
+
+
+
     int maxScoreIdx = -1;
     for (int i = 0; i < scores.length; i++) {
       if (scores[i] > maxScore) {
@@ -72,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
     // showing className on UI
     TextView textView = findViewById(R.id.text);
-    textView.setText(className);
+    textView.setText(palabra);
   }
 
   /**
@@ -80,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
    *
    * @return absolute file path
    */
+
+
   public static String assetFilePath(Context context, String assetName) throws IOException {
     File file = new File(context.getFilesDir(), assetName);
     if (file.exists() && file.length() > 0) {
